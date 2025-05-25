@@ -5,9 +5,9 @@ namespace Telegram\Bot\Commands;
 use Illuminate\Support\Collection;
 use ReflectionClass;
 use ReflectionMethod;
-use Telegram\Bot\Bot;
 use Telegram\Bot\Commands\Attributes\Command;
 use Telegram\Bot\Commands\Contracts\CommandContract;
+use Telegram\Bot\Contracts\BotInterface;
 use Telegram\Bot\Exceptions\TelegramSDKException;
 use Telegram\Bot\Objects\ResponseObject;
 use Telegram\Bot\Traits\ForwardsCalls;
@@ -27,7 +27,7 @@ final class CommandHandler
      *
      * @throws TelegramSDKException
      */
-    public function __construct(Bot $bot)
+    public function __construct(BotInterface $bot)
     {
         $this->bot = $bot;
 

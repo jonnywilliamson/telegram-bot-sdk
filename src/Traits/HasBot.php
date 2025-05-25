@@ -2,15 +2,15 @@
 
 namespace Telegram\Bot\Traits;
 
-use Telegram\Bot\Bot;
+use Telegram\Bot\Contracts\BotInterface;
 
 /**
  * Class HasBot.
  */
 trait HasBot
 {
-    /** @var Bot|null Telegram Bot. */
-    protected ?Bot $bot = null;
+    /** @var BotInterface|null Telegram Bot. */
+    protected ?BotInterface $bot = null;
 
     /**
      * Determine if Telegram Bot is set.
@@ -23,7 +23,7 @@ trait HasBot
     /**
      * Get the Telegram Bot.
      */
-    public function getBot(): ?Bot
+    public function getBot(): ?BotInterface
     {
         return $this->bot;
     }
@@ -34,7 +34,7 @@ trait HasBot
      *
      * @return $this
      */
-    public function setBot(Bot $bot): self
+    public function setBot(BotInterface $bot): self
     {
         $this->bot = $bot;
 

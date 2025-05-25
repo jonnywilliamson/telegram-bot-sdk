@@ -10,6 +10,7 @@ use Telegram\Bot\Commands\CommandHandler;
 use Telegram\Bot\Commands\Contracts\CallableContract;
 use Telegram\Bot\Commands\Contracts\CommandContract;
 use Telegram\Bot\Commands\Listeners\ProcessCommand;
+use Telegram\Bot\Contracts\BotInterface;
 use Telegram\Bot\Contracts\HttpClientInterface;
 use Telegram\Bot\Events\EventFactory;
 use Telegram\Bot\Events\UpdateEvent;
@@ -26,7 +27,7 @@ use Telegram\Bot\Traits\HasContainer;
  *
  * @mixin Api
  */
-final class Bot
+final class Bot implements BotInterface
 {
     use ForwardsCalls;
     use HasConfig;

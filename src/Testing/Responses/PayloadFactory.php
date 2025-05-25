@@ -128,7 +128,14 @@ final class PayloadFactory
         for ($i = 0; $i < $this->count; $i++) {
             $payloadFormat = Payload::create()->{$name}();
             $data = $this->makeWithFaker($payloadFormat);
-            $payloads[] = $this->mergePayloads($data, $payload);
+            $data = $this->mergePayloads($data, $payload);
+            //Conditional entity generation if 'message.text' looks like a command
+            if (isset($data['message']['text']) && Str::startsWith($data['message']['text'], '/')) {
+                // Ensure entities array exists
+                $data['message']['entities'] = $this->faker()->commandEntities($data['message']['text']);
+            }
+
+            $payloads[] = $data;
         }
 
         return $payloads;

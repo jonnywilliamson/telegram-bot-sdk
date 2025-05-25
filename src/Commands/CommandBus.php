@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use Telegram\Bot\Bot;
 use Telegram\Bot\Commands\Contracts\CommandContract;
 use Telegram\Bot\Commands\Events\CommandNotFoundEvent;
+use Telegram\Bot\Contracts\BotInterface;
 use Telegram\Bot\Exceptions\TelegramCommandException;
 use Telegram\Bot\Exceptions\TelegramSDKException;
 use Telegram\Bot\Helpers\Validator;
@@ -23,7 +24,7 @@ final class CommandBus
     /**
      * Instantiate Command Bus.
      */
-    public function __construct(?Bot $bot = null)
+    public function __construct(?BotInterface $bot = null)
     {
         $this->bot = $bot;
     }
