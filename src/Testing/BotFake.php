@@ -3,15 +3,15 @@
 namespace Telegram\Bot\Testing;
 
 use Exception;
+use Illuminate\Contracts\Container\Container;
 use PHPUnit\Framework\Assert as PHPUnit;
 use Telegram\Bot\Commands\CommandHandler;
 use Telegram\Bot\Commands\Contracts\CommandContract;
-use Telegram\Bot\Events\EventFactory;
 use Telegram\Bot\Contracts\BotInterface;
+use Telegram\Bot\Events\EventFactory;
 use Telegram\Bot\Objects\ResponseObject;
 use Telegram\Bot\Testing\Requests\TestRequest;
 use Throwable;
-use Illuminate\Contracts\Container\Container;
 
 final class BotFake implements BotInterface
 {
@@ -21,15 +21,20 @@ final class BotFake implements BotInterface
     private array $requests = [];
 
     private bool $failWhenEmpty = false;
+
     private ?CommandHandler $commandHandler = null;
+
     private array $config = []; // Mock config storage
+
     private ?Container $container = null; // Mock container
+
     private ?EventFactory $eventFactory = null; // Mock EventFactory
 
     /**
      * @param  array<array-key, string>  $responses
      */
-    public function __construct(protected array $responses = []) {
+    public function __construct(protected array $responses = [])
+    {
         // Set up a minimal config for the fake bot
         $this->config = [
             'bot' => 'fake',
@@ -70,12 +75,13 @@ final class BotFake implements BotInterface
 
     public function getCommandHandler(): CommandHandler
     {
-        if (!$this->commandHandler) {
+        if (! $this->commandHandler) {
             // Lazily initialize CommandHandler for this fake bot
             $this->commandHandler = new CommandHandler($this);
             // Ensure CommandHandler's internal bot reference also points to this fake
             $this->commandHandler->setBot($this);
         }
+
         return $this->commandHandler;
     }
 
@@ -83,12 +89,14 @@ final class BotFake implements BotInterface
     {
         $this->commandHandler = $commandHandler;
         $this->commandHandler->setBot($this); // Ensure handler uses this fake bot
+
         return $this;
     }
 
     public function command(string $command, array|string|callable|CommandContract $handler): CommandContract|\Telegram\Bot\Commands\Contracts\CallableContract
     {
         return $this->getCommandHandler()->command($command, $handler);
+
         // Returns CommandContract or CallableContract, not $this for fluent chaining here
         // as per the IBot contract, but it's typically fine for tests to return $this from fake.
         return $this; // Return $this for fluent chaining
@@ -96,17 +104,19 @@ final class BotFake implements BotInterface
 
     public function getEventFactory(): EventFactory
     {
-        if (!$this->eventFactory) {
-            $this->eventFactory = new EventFactory();
+        if (! $this->eventFactory) {
+            $this->eventFactory = new EventFactory;
             // Since CommandBus uses EventFactory to dispatch events like CommandNotFoundEvent,
             // we need to ensure the fake bot's EventFactory exists.
         }
+
         return $this->eventFactory;
     }
 
     public function setEventFactory(EventFactory $eventFactory): self
     {
         $this->eventFactory = $eventFactory;
+
         return $this;
     }
 
@@ -119,8 +129,10 @@ final class BotFake implements BotInterface
             foreach ($key as $name => $value) {
                 \Illuminate\Support\Arr::set($this->config, $name, $value);
             }
+
             return true;
         }
+
         return \Illuminate\Support\Arr::get($this->config, $key, $default);
     }
 
@@ -137,6 +149,7 @@ final class BotFake implements BotInterface
     public function setContainer(Container $container): self
     {
         $this->container = $container;
+
         return $this;
     }
 
@@ -156,6 +169,7 @@ final class BotFake implements BotInterface
     public function processCommand(ResponseObject $update): static
     {
         $this->getCommandHandler()->processCommand($update);
+
         return $this;
     }
 

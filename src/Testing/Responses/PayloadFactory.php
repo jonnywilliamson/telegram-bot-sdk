@@ -129,7 +129,7 @@ final class PayloadFactory
             $payloadFormat = Payload::create()->{$name}();
             $data = $this->makeWithFaker($payloadFormat);
             $data = $this->mergePayloads($data, $payload);
-            //Conditional entity generation if 'message.text' looks like a command
+            // Conditional entity generation if 'message.text' looks like a command
             if (isset($data['message']['text']) && Str::startsWith($data['message']['text'], '/')) {
                 // Ensure entities array exists
                 $data['message']['entities'] = $this->faker()->commandEntities($data['message']['text']);

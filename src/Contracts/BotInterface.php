@@ -3,8 +3,6 @@
 namespace Telegram\Bot\Contracts;
 
 use Illuminate\Contracts\Container\Container;
-use Telegram\Bot\Addon\AddonManager;
-
 // Example, if needed by CommandBus
 use Telegram\Bot\Api;
 use Telegram\Bot\Commands\CommandHandler;
@@ -15,7 +13,6 @@ use Telegram\Bot\Objects\ResponseObject;
 
 interface BotInterface
 {
-
     public function getName(): string;
 
     public function getApi(): Api;
