@@ -5,12 +5,15 @@ namespace Telegram\Bot\Testing\Responses;
 use Exception;
 use Faker\Provider\Base;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 final class TelegramFakerProvider extends Base
 {
-    public function id(int $digits = 9): int
+    public function id($digits = 9): int
     {
-        return $this->generator->randomNumber($digits);
+        $pat = str_repeat('#', $digits - 1);
+        $res =  $this->generator->numerify($pat);
+        return (int)("1".$res);
     }
 
     public function botName(): string
@@ -29,11 +32,11 @@ final class TelegramFakerProvider extends Base
     public function from(): array
     {
         return [
-            'id' => $this->generator->randomNumber(9),
-            'is_bot' => false,
-            'first_name' => $this->generator->firstName(),
-            'last_name' => $this->generator->lastName(),
-            'username' => $this->generator->userName(),
+            'id'            => $this->generator->randomNumber(9),
+            'is_bot'        => false,
+            'first_name'    => $this->generator->firstName(),
+            'last_name'     => $this->generator->lastName(),
+            'username'      => $this->generator->userName(),
             'language_code' => $this->generator->languageCode(),
         ];
     }
@@ -44,11 +47,11 @@ final class TelegramFakerProvider extends Base
     public function chat(): array
     {
         return [
-            'id' => $this->generator->randomNumber(9),
+            'id'         => $this->generator->randomNumber(9),
             'first_name' => $this->generator->firstName(),
-            'last_name' => $this->generator->lastName(),
-            'username' => $this->generator->userName(),
-            'type' => 'private',
+            'last_name'  => $this->generator->lastName(),
+            'username'   => $this->generator->userName(),
+            'type'       => 'private',
         ];
     }
 
@@ -58,11 +61,16 @@ final class TelegramFakerProvider extends Base
     public function botFrom(): array
     {
         return [
-            'id' => $this->generator->randomNumber(9),
-            'is_bot' => true,
+            'id'         => $this->generator->randomNumber(9),
+            'is_bot'     => true,
             'first_name' => $this->botName(),
-            'username' => $this->botUserName(),
+            'username'   => $this->botUserName(),
         ];
+    }
+
+    public function fileId(int $length = 36): string
+    {
+        return $this->generator->lexify(str_repeat('?', $length));
     }
 
     public function command(?string $command = null): string
@@ -106,5 +114,43 @@ final class TelegramFakerProvider extends Base
         } catch (Exception) {
             return $name;
         }
+    }
+
+    /**
+     * Generates a command entities array for a given command text.
+     *
+     * @param string|null $commandText The full command text, e.g., "/start" or "/help arg1"
+     * @return array<array{offset: int, length: int, type: string}>
+     */
+    public function commandEntities(?string $commandText = null): array
+    {
+        if ($commandText === null || !Str::startsWith($commandText, '/')) {
+            return [];
+        }
+
+        $offset = 0;
+        $length = Str::length($commandText); // Default to full string if no space or @
+
+        $firstSpace = mb_strpos($commandText, ' ');
+        $atSymbolIndex = mb_strpos($commandText, '@');
+
+        if ($atSymbolIndex !== false) {
+            // Command is /command@botusername
+            if ($firstSpace === false || $atSymbolIndex < $firstSpace) {
+                $length = ($firstSpace === false) ? Str::length($commandText) : $firstSpace;
+            }
+        } elseif ($firstSpace !== false) {
+            // Command is /command with args
+            $length = $firstSpace;
+        }
+        // If no space and no @, length is just the full command string (e.g., "/start")
+
+        return [
+            [
+                'offset' => $offset,
+                'length' => $length,
+                'type' => 'bot_command',
+            ],
+        ];
     }
 }

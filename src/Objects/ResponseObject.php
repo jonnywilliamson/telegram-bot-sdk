@@ -6,13 +6,13 @@ use ArrayAccess;
 use Countable;
 use Illuminate\Support\Collection;
 use LogicException;
-use Telegram\Bot\Testing\Responses\PayloadFactory;
+use Telegram\Bot\Testing\Responses\TelegramUpdate;
 
 final class ResponseObject extends AbstractObject implements ArrayAccess, Countable
 {
-    public static function factory(): PayloadFactory
+    public static function factory(): TelegramUpdate
     {
-        return PayloadFactory::create();
+        return TelegramUpdate::create();
     }
 
     public function withCustomData(mixed $key, mixed $value): self
