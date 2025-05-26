@@ -93,12 +93,10 @@ final class BotFake implements BotInterface
         return $this;
     }
 
-    public function command(string $command, array|string|callable|CommandContract $handler): CommandContract|\Telegram\Bot\Commands\Contracts\CallableContract
+    // Intentionally returning self for improved testing ergonomics, diverging from BotInterface.
+    public function command(string $command, array|string|callable|CommandContract $handler): self
     {
-        return $this->getCommandHandler()->command($command, $handler);
-
-        // Returns CommandContract or CallableContract, not $this for fluent chaining here
-        // as per the IBot contract, but it's typically fine for tests to return $this from fake.
+        $this->getCommandHandler()->command($command, $handler);
         return $this; // Return $this for fluent chaining
     }
 

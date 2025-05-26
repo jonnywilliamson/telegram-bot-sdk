@@ -15,6 +15,7 @@ use Telegram\Bot\Commands\Contracts\CallableContract;
 use Telegram\Bot\Commands\Contracts\CommandContract;
 use Telegram\Bot\Exceptions\TelegramCommandException;
 use Telegram\Bot\Exceptions\TelegramSDKException;
+use Telegram\Bot\Helpers\Entity;
 use Telegram\Bot\Helpers\Reflector;
 use Telegram\Bot\Traits\HasUpdate;
 
@@ -72,16 +73,38 @@ final class Parser
      */
     public function arguments(): array
     {
-        preg_match(
-            $this->argumentsPattern(),
-            $this->relevantSubString(Entity::from($this->getUpdate())->text()),
-            $matches
-        );
+        $fullMessageText = Entity::from($this->getUpdate())->text();
+        $currentEntity = $this->getEntity();
 
-        return $this->nullifiedRegexParams()
-            // Discard non-named key-value pairs and merge with nullified regex params.
-            ->merge(array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY))
-            ->all();
+        if ($currentEntity === null) {
+            // This case should ideally not happen if setEntity is always called.
+            // However, if it does, it means we don't know which command to parse args for.
+            return [];
+        }
+
+        // relevantSubString gives the text from the start of the current command
+        // up to the start of the next command, or to the end of the message.
+        $commandRelevantText = $this->relevantSubString($fullMessageText);
+
+        // The command itself (e.g., /mycommand) is at the beginning of commandRelevantText.
+        // Its length is given by $currentEntity['length'].
+        // We need to adjust length if the command was part of a group like /command@botname
+        // The $currentEntity['length'] refers to the length of the command in the original message text.
+        // When relevantSubString is used, it effectively "starts" the string at the command's beginning.
+        // So, the command part within commandRelevantText has length $currentEntity['length'].
+        $commandLocalLength = $currentEntity['length'];
+
+        // Extract the substring after the command.
+        $rawArgumentsString = mb_substr($commandRelevantText, $commandLocalLength, null, 'UTF-8');
+
+        $trimmedArgsString = trim($rawArgumentsString);
+
+        if ($trimmedArgsString === '') {
+            return [];
+        }
+
+        // Split arguments by one or more spaces.
+        return preg_split('/\s+/', $trimmedArgsString);
     }
 
     /**
