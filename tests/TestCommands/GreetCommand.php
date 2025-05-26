@@ -8,6 +8,7 @@ use Telegram\Bot\Objects\Update;
 class GreetCommand extends Command
 {
     protected string $name = 'greet';
+
     protected string $description = 'Greets a person.';
 
     public function handle(array $arguments): void
@@ -25,7 +26,7 @@ class GreetCommand extends Command
 
         $this->replyWithMessage([
             'chat_id' => $chatId,
-            'text'    => "Hello, {$name}!",
+            'text' => "Hello, {$name}!",
         ]);
     }
 }

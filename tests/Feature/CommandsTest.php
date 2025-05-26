@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use Telegram\Bot\FileUpload\InputFile;
 use Telegram\Bot\Testing\BotFake;
 use Telegram\Bot\Testing\Responses\PayloadFactory;
-use Tests\TestCommands\PhotoCommand;
 use Tests\TestCommands\GreetCommand;
+use Tests\TestCommands\PhotoCommand;
 
 beforeAll(function () {
     // Ensure the assets directory and dummy file exist before any tests run
@@ -29,7 +29,7 @@ afterAll(function () {
 });
 
 it('sends a photo when /photo command is received without arguments', function () {
-    $fakeBot = new BotFake();
+    $fakeBot = new BotFake;
     $fakeBot->command('photo', PhotoCommand::class);
 
     $chatId = 123456789;
@@ -43,8 +43,8 @@ it('sends a photo when /photo command is received without arguments', function (
             'from' => ['id' => $userId, 'first_name' => $firstName, 'is_bot' => false],
             'chat' => ['id' => $chatId, 'type' => 'private', 'first_name' => $firstName],
             'entities' => [
-                ['type' => 'bot_command', 'offset' => 0, 'length' => 6] // Explicitly define /photo as a command
-            ]
+                ['type' => 'bot_command', 'offset' => 0, 'length' => 6], // Explicitly define /photo as a command
+            ],
         ])
         ->asResponseObject();
 
@@ -67,7 +67,7 @@ it('sends a photo when /photo command is received without arguments', function (
 });
 
 it('processes multiple commands in a single message', function () {
-    $fakeBot = new BotFake();
+    $fakeBot = new BotFake;
     $fakeBot->command('greet', GreetCommand::class);
     $fakeBot->command('photo', PhotoCommand::class);
 
@@ -92,11 +92,11 @@ it('processes multiple commands in a single message', function () {
     $update = PayloadFactory::create()
         ->message([
             'message_id' => 1001,
-            'text'       => $fullMessageText,
-            'from'       => ['id' => $userId, 'first_name' => $firstName, 'is_bot' => false, 'username' => 'testuser'],
-            'chat'       => ['id' => $chatId, 'type' => 'private', 'first_name' => $firstName, 'username' => 'testuser'],
-            'date'       => time(),
-            'entities'   => [
+            'text' => $fullMessageText,
+            'from' => ['id' => $userId, 'first_name' => $firstName, 'is_bot' => false, 'username' => 'testuser'],
+            'chat' => ['id' => $chatId, 'type' => 'private', 'first_name' => $firstName, 'username' => 'testuser'],
+            'date' => time(),
+            'entities' => [
                 ['type' => 'bot_command', 'offset' => $greetOffset, 'length' => $greetLength],
                 ['type' => 'bot_command', 'offset' => $photoOffset, 'length' => $photoLength],
             ],
@@ -109,6 +109,7 @@ it('processes multiple commands in a single message', function () {
     $fakeBot->assertSent('sendMessage', function ($params) use ($chatId, $nameArgument) {
         expect($params['chat_id'])->toBe($chatId);
         expect($params['text'])->toBe("Hello, {$nameArgument}!");
+
         return true;
     });
 
@@ -120,12 +121,13 @@ it('processes multiple commands in a single message', function () {
         /** @var InputFile $inputFile */
         $inputFile = $params['photo'];
         expect($inputFile->getFilename())->toBe('test_image.jpg');
+
         return true;
     });
 });
 
 it('greets a user with provided name when /greet [name] command is received', function () {
-    $fakeBot = new BotFake();
+    $fakeBot = new BotFake;
     $fakeBot->command('greet', GreetCommand::class);
 
     $chatId = 123456789;
@@ -149,12 +151,13 @@ it('greets a user with provided name when /greet [name] command is received', fu
     $fakeBot->assertSent('sendMessage', function ($params) use ($chatId, $nameArgument) {
         expect($params['chat_id'])->toBe($chatId);
         expect($params['text'])->toBe("Hello, {$nameArgument}!");
+
         return true;
     });
 });
 
 it('greets "stranger" when /greet command is received without arguments', function () {
-    $fakeBot = new BotFake();
+    $fakeBot = new BotFake;
     $fakeBot->command('greet', GreetCommand::class);
 
     $chatId = 123456789;
@@ -177,6 +180,7 @@ it('greets "stranger" when /greet command is received without arguments', functi
     $fakeBot->assertSent('sendMessage', function ($params) use ($chatId) {
         expect($params['chat_id'])->toBe($chatId);
         expect($params['text'])->toBe('Hello, stranger!');
+
         return true;
     });
 });

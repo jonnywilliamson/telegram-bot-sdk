@@ -97,6 +97,7 @@ final class BotFake implements BotInterface
     public function command(string $command, array|string|callable|CommandContract $handler): self
     {
         $this->getCommandHandler()->command($command, $handler);
+
         return $this; // Return $this for fluent chaining
     }
 

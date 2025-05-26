@@ -9,6 +9,7 @@ use Telegram\Bot\Objects\Update;
 class PhotoCommand extends Command
 {
     protected string $name = 'photo';
+
     protected string $description = 'Sends a photo.';
 
     public function handle(array $arguments): void
@@ -24,7 +25,7 @@ class PhotoCommand extends Command
 
         $this->replyWithPhoto([
             'chat_id' => $chatId,
-            'photo'   => InputFile::create(__DIR__.'/../assets/test_image.jpg', 'test_image.jpg'),
+            'photo' => InputFile::create(__DIR__.'/../assets/test_image.jpg', 'test_image.jpg'),
             'caption' => 'Here is your photo!',
         ]);
     }
