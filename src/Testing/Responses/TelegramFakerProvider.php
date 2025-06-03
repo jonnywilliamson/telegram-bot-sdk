@@ -12,8 +12,9 @@ final class TelegramFakerProvider extends Base
     public function id($digits = 9): int
     {
         $pat = str_repeat('#', $digits - 1);
-        $res =  $this->generator->numerify($pat);
-        return (int)("1".$res);
+        $res = $this->generator->numerify($pat);
+
+        return (int) ('1'.$res);
     }
 
     public function botName(): string
@@ -32,11 +33,11 @@ final class TelegramFakerProvider extends Base
     public function from(): array
     {
         return [
-            'id'            => $this->generator->randomNumber(9),
-            'is_bot'        => false,
-            'first_name'    => $this->generator->firstName(),
-            'last_name'     => $this->generator->lastName(),
-            'username'      => $this->generator->userName(),
+            'id' => $this->generator->randomNumber(9),
+            'is_bot' => false,
+            'first_name' => $this->generator->firstName(),
+            'last_name' => $this->generator->lastName(),
+            'username' => $this->generator->userName(),
             'language_code' => $this->generator->languageCode(),
         ];
     }
@@ -47,11 +48,11 @@ final class TelegramFakerProvider extends Base
     public function chat(): array
     {
         return [
-            'id'         => $this->generator->randomNumber(9),
+            'id' => $this->generator->randomNumber(9),
             'first_name' => $this->generator->firstName(),
-            'last_name'  => $this->generator->lastName(),
-            'username'   => $this->generator->userName(),
-            'type'       => 'private',
+            'last_name' => $this->generator->lastName(),
+            'username' => $this->generator->userName(),
+            'type' => 'private',
         ];
     }
 
@@ -61,10 +62,10 @@ final class TelegramFakerProvider extends Base
     public function botFrom(): array
     {
         return [
-            'id'         => $this->generator->randomNumber(9),
-            'is_bot'     => true,
+            'id' => $this->generator->randomNumber(9),
+            'is_bot' => true,
             'first_name' => $this->botName(),
-            'username'   => $this->botUserName(),
+            'username' => $this->botUserName(),
         ];
     }
 
@@ -119,12 +120,12 @@ final class TelegramFakerProvider extends Base
     /**
      * Generates a command entities array for a given command text.
      *
-     * @param string|null $commandText The full command text, e.g., "/start" or "/help arg1"
+     * @param  string|null  $commandText  The full command text, e.g., "/start" or "/help arg1"
      * @return array<array{offset: int, length: int, type: string}>
      */
     public function commandEntities(?string $commandText = null): array
     {
-        if ($commandText === null || !Str::startsWith($commandText, '/')) {
+        if ($commandText === null || ! Str::startsWith($commandText, '/')) {
             return [];
         }
 

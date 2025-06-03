@@ -19,7 +19,7 @@ describe('PayloadFactory', function () {
             ->and($update->message->entities[0]->toArray())->toMatchArray([
                 'offset' => 0,
                 'length' => 12,
-                'type'   => 'bot_command',
+                'type' => 'bot_command',
             ])
             ->and($update->message->from)->toBeObject()
             ->and($update->message->chat)->toBeObject()
@@ -42,7 +42,7 @@ describe('PayloadFactory', function () {
         expect($update)->toBeInstanceOf(ResponseObject::class)
             ->and($update->callback_query)->toBeObject()
             ->and($update->callback_query->data)->toBe($data)
-            ->and((string)$update->callback_query->id)->toHaveLength(16)
+            ->and((string) $update->callback_query->id)->toHaveLength(16)
             ->and($update->callback_query->from)->toBeObject()
             ->and($update->callback_query->message)->toBeObject();
     });
@@ -80,7 +80,7 @@ describe('PayloadFactory', function () {
         $customText = 'Override this text!';
 
         $update = TelegramUpdate::create()->textMessage('Original text', [
-            'message'   => [
+            'message' => [
                 'from' => ['id' => $userId],
                 'chat' => ['id' => $chatId],
                 'text' => $customText,

@@ -21,13 +21,11 @@ final class TelegramUpdate
 
     private ?array $basePayloadTemplate = null;
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     public static function create(): self
     {
-        return new self();
+        return new self;
     }
 
     public function __invoke(): ResponseObject|array
@@ -39,13 +37,15 @@ final class TelegramUpdate
     public function asCollection(): Collection
     {
         $payloads = $this->generatePayloads();
-        return new Collection(array_map(fn($p) => ResponseObject::make($p), $payloads));
+
+        return new Collection(array_map(fn ($p) => ResponseObject::make($p), $payloads));
     }
 
     public function asResult(): array
     {
         $payloads = $this->generatePayloads();
         $count = count($payloads);
+
         return [
             'ok' => true,
             'result' => $count === 1 ? $payloads[0] : $payloads,
@@ -58,12 +58,14 @@ final class TelegramUpdate
         if (count($payloads) === 1) {
             return ResponseObject::make($payloads[0])->__toJson();
         }
-        return json_encode(array_map(fn($p) => ResponseObject::make($p)->toArray(), $payloads));
+
+        return json_encode(array_map(fn ($p) => ResponseObject::make($p)->toArray(), $payloads));
     }
 
     public function toArray(): array
     {
         $payloads = $this->generatePayloads();
+
         return count($payloads) === 1 ? $payloads[0] : $payloads;
     }
 
@@ -80,7 +82,7 @@ final class TelegramUpdate
 
     public function commandMessage(string $commandName, ?string $args = null, array $mergePayload = []): self
     {
-        $fullCommand = '/' . $commandName . ($args ? ' ' . $args : '');
+        $fullCommand = '/'.$commandName.($args ? ' '.$args : '');
         $template = Payload::create()->update();
         $baseMessageTemplate = Payload::create()->message();
 
@@ -175,18 +177,21 @@ final class TelegramUpdate
         if (count($payloads) === 1) {
             return ResponseObject::make($payloads[0]);
         }
-        return array_map(fn($p) => ResponseObject::make($p), $payloads);
+
+        return array_map(fn ($p) => ResponseObject::make($p), $payloads);
     }
 
     public function times(int $count): self
     {
         $this->count = $count;
+
         return $this;
     }
 
     public function seed(int $seed): self
     {
         $this->seed = $seed;
+
         return $this;
     }
 
@@ -198,15 +203,17 @@ final class TelegramUpdate
             $value = $arguments[0];
 
             if ($this->basePayloadTemplate === null) {
-                throw new RuntimeException("No base payload template set. Call a payload generation method first.");
+                throw new RuntimeException('No base payload template set. Call a payload generation method first.');
             }
 
             $this->basePayloadTemplate = $this->mergePayloads($this->basePayloadTemplate, [$key => $value]);
+
             return $this;
         }
 
         if (method_exists(Payload::class, $name)) {
             $this->basePayloadTemplate = Payload::create()->{$name}(...$arguments);
+
             return $this;
         }
 
@@ -219,7 +226,7 @@ final class TelegramUpdate
     private function generatePayloads(): array
     {
         if ($this->basePayloadTemplate === null) {
-            throw new RuntimeException("No base payload template set. Call a payload generation method like commandMessage(), textMessage(), or user() first.");
+            throw new RuntimeException('No base payload template set. Call a payload generation method like commandMessage(), textMessage(), or user() first.');
         }
 
         $currentCount = $this->count;
@@ -255,6 +262,7 @@ final class TelegramUpdate
                     if (method_exists(Payload::class, $method) && empty($args)) {
                         return $this->makeWithFaker(Payload::create()->{$method}());
                     }
+
                     return $value;
                 }
             }

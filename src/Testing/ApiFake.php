@@ -2,11 +2,10 @@
 
 namespace Telegram\Bot\Testing;
 
-use Illuminate\Support\Collection;
+use Exception;
 use Telegram\Bot\Api;
 use Telegram\Bot\Objects\ResponseObject;
 use Telegram\Bot\Testing\Requests\TestRequest;
-use Exception;
 use Throwable;
 
 class ApiFake extends Api
@@ -38,6 +37,7 @@ class ApiFake extends Api
     public function failWhenEmpty(): self
     {
         $this->failWhenEmpty = true;
+
         return $this;
     }
 
@@ -49,7 +49,7 @@ class ApiFake extends Api
             throw new Exception('No fake responses left.');
         }
 
-        if (!empty($this->mockResponses)) {
+        if (! empty($this->mockResponses)) {
             $response = array_shift($this->mockResponses);
             if ($response instanceof Throwable) {
                 throw $response;

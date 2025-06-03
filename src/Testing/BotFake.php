@@ -3,7 +3,6 @@
 namespace Telegram\Bot\Testing;
 
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Assert as PHPUnit;
@@ -21,26 +20,31 @@ class BotFake extends Bot
 {
     /** @var array<string, array> Tracks commands processed by CommandHandler */
     private array $processedCommands = [];
-    private bool $failWhenEmpty = false;
-    private ?CommandHandler $commandHandler = null;
-    private array $config = []; // Mock config storage
-    protected ?Container $container = null; // Mock container
-    private ?EventFactory $eventFactory = null; // Mock EventFactory
-    private Api $api;
 
+    private bool $failWhenEmpty = false;
+
+    private ?CommandHandler $commandHandler = null;
+
+    private array $config = []; // Mock config storage
+
+    protected ?Container $container = null; // Mock container
+
+    private ?EventFactory $eventFactory = null; // Mock EventFactory
+
+    private Api $api;
 
     public function __construct(array $responses = [])
     {
         parent::__construct([
-            'bot'    => 'fake',
-            'token'  => 'fake-token-for-testing', // Dummy token for parent constructor
+            'bot' => 'fake',
+            'token' => 'fake-token-for-testing', // Dummy token for parent constructor
             'global' => [
                 'http' => [
-                    'client'   => GuzzleHttpClient::class,
-                    'api_url'  => 'https://api.telegram.org',
+                    'client' => GuzzleHttpClient::class,
+                    'api_url' => 'https://api.telegram.org',
                     'file_url' => '',
-                    'config'   => [],
-                    'async'    => false,
+                    'config' => [],
+                    'async' => false,
                 ],
             ],
             'listen' => [],
@@ -48,13 +52,14 @@ class BotFake extends Bot
 
         $this->setApi(new ApiFake($responses));
 
-        //TODO - do I need this
+        // TODO - do I need this
         $this->getCommandHandler()->setBot($this);
     }
 
     public function setApi(Api $api): self
     {
         $this->api = $api; // This sets the private property
+
         return $this;
     }
 
@@ -66,14 +71,13 @@ class BotFake extends Bot
     /**
      * Provides a fluent interface for setting up commands for testing
      *
-     * @param string                          $name
-     * @param string|callable|CommandContract $handler
      *
      * @return $this
      */
     public function registerCommand(string $name, string|callable|CommandContract $handler): self
     {
         $this->getCommandHandler()->command($name, $handler);
+
         return $this;
     }
 
@@ -98,6 +102,7 @@ class BotFake extends Bot
     public function processUpdate(ResponseObject $update): static
     {
         $this->getCommandHandler()->processCommand($update);
+
         return $this;
     }
 
@@ -106,7 +111,7 @@ class BotFake extends Bot
         $this->getApi()->addResponses($responses);
     }
 
-    //Assertions Begin Here
+    // Assertions Begin Here
 
     public function assertSent(string $method, array|callable|null $constraint = null): void
     {
@@ -144,7 +149,7 @@ class BotFake extends Bot
             array: array_map(fn (TestRequest $request): string => $request->method(), $this->getApi()->getRequests())
         );
 
-        PHPUnit::assertEmpty($this->getApi()->getRequests(), 'The following requests were sent unexpectedly: ' . $methodNames);
+        PHPUnit::assertEmpty($this->getApi()->getRequests(), 'The following requests were sent unexpectedly: '.$methodNames);
     }
 
     public function assertMessageSent(string $text, ?string $chatId = null): void
@@ -152,7 +157,7 @@ class BotFake extends Bot
         $this->assertSent('sendMessage', function (array $params) use ($text, $chatId) {
             $actualText = $params['text'] ?? '';
             $textMatches = ($actualText === $text);
-            $chatIdMatches = $chatId ? ((string)($params['chat_id'] ?? '') === $chatId) : true;
+            $chatIdMatches = $chatId ? ((string) ($params['chat_id'] ?? '') === $chatId) : true;
 
             return $textMatches && $chatIdMatches;
         });
@@ -163,7 +168,7 @@ class BotFake extends Bot
         $this->assertSent('sendMessage', function (array $params) use ($text, $chatId) {
             $actualText = $params['text'] ?? '';
             $textMatches = Str::contains($actualText, $text);
-            $chatIdMatches = $chatId ? ((string)($params['chat_id'] ?? '') === $chatId) : true;
+            $chatIdMatches = $chatId ? ((string) ($params['chat_id'] ?? '') === $chatId) : true;
 
             return $textMatches && $chatIdMatches;
         });
@@ -174,7 +179,7 @@ class BotFake extends Bot
         PHPUnit::assertSame(
             $count,
             count($this->sentByMethod('sendMessage')), // Directly count all 'sendMessage' calls
-            "The sendMessage method was called " . count($this->sentByMethod('sendMessage')) . " times instead of {$count} times."
+            'The sendMessage method was called '.count($this->sentByMethod('sendMessage'))." times instead of {$count} times."
         );
     }
 
@@ -188,6 +193,7 @@ class BotFake extends Bot
                 if ($callback === null) {
                     return true;
                 }
+
                 // Pass the arguments that the command received to the callback
                 return $callback($commandRecord['arguments']);
             });
@@ -235,7 +241,7 @@ class BotFake extends Bot
     public function recordCommandHandled(string $commandName, array $arguments = []): void
     {
         $this->processedCommands[] = [
-            'name'      => strtolower($commandName),
+            'name' => strtolower($commandName),
             'arguments' => $arguments,
         ];
     }
@@ -252,7 +258,7 @@ class BotFake extends Bot
 
         return array_filter(
             $this->processedCommands,
-            fn($record) => in_array($record['name'], $filterNames, true)
+            fn ($record) => in_array($record['name'], $filterNames, true)
         );
     }
 

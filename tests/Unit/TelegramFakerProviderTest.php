@@ -7,7 +7,7 @@ use Faker\Generator;
 use Telegram\Bot\Testing\Responses\TelegramFakerProvider;
 
 /** @return Generator&TelegramFakerProvider */
-function getFakerGenerator(int $seed = null): Generator
+function getFakerGenerator(?int $seed = null): Generator
 {
     $faker = Faker::create();
     if ($seed !== null) {
@@ -24,10 +24,10 @@ describe('TelegramFakerProvider', function () {
         $faker = getFakerGenerator(123);
         $id = $faker->id(5);
         expect($id)->toBeInt()
-            ->and(strlen((string)$id))->toBe(5);
+            ->and(strlen((string) $id))->toBe(5);
 
         $id = $faker->id(14);
-        expect(strlen((string)$id))->toBe(14);
+        expect(strlen((string) $id))->toBe(14);
     });
 
     it('generates file IDs with correct length and type', function () {
@@ -55,14 +55,14 @@ describe('TelegramFakerProvider', function () {
             ->and($entities[0])->toMatchArray([
                 'offset' => 0,
                 'length' => 6,
-                'type'   => 'bot_command',
+                'type' => 'bot_command',
             ]);
 
         $entities = $faker->commandEntities('/help arg1 arg2');
         expect($entities[0])->toMatchArray([
             'offset' => 0,
             'length' => 5,
-            'type'   => 'bot_command',
+            'type' => 'bot_command',
         ]);
     });
 
@@ -72,14 +72,14 @@ describe('TelegramFakerProvider', function () {
         expect($entities[0])->toMatchArray([
             'offset' => 0,
             'length' => 18,
-            'type'   => 'bot_command',
+            'type' => 'bot_command',
         ]);
 
         $entities = $faker->commandEntities('/testcommand@mybot with arguments');
         expect($entities[0])->toMatchArray([
             'offset' => 0,
             'length' => 18,
-            'type'   => 'bot_command',
+            'type' => 'bot_command',
         ]);
     });
 
@@ -126,6 +126,6 @@ describe('TelegramFakerProvider', function () {
         $faker = getFakerGenerator(888);
         $mimeType = $faker->mimeType();
         expect($mimeType)->toBeString()
-            ->and($mimeType)->toContain('/');// MIME types contain a slash
+            ->and($mimeType)->toContain('/'); // MIME types contain a slash
     });
 });

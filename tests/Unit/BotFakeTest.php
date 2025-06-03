@@ -9,13 +9,14 @@ use Telegram\Bot\Testing\Responses\TelegramUpdate;
 class StartCommand extends Command
 {
     protected string $name = 'start';
+
     protected string $description = 'Start command for testing';
 
     public function handle(): void
     {
         $this->getBot()->sendMessage([
             'chat_id' => $this->getUpdate()->message->chat->id,
-            'text'    => 'Welcome! Use /help to see available commands.',
+            'text' => 'Welcome! Use /help to see available commands.',
         ]);
     }
 }
@@ -23,13 +24,14 @@ class StartCommand extends Command
 class HelpCommand extends Command
 {
     protected string $name = 'help';
+
     protected string $description = 'Help command for testing';
 
     public function handle(): void
     {
         $this->getBot()->sendMessage([
             'chat_id' => $this->getUpdate()->message->chat->id,
-            'text'    => "Available commands:\n/start - Get started\n/help - Show this help",
+            'text' => "Available commands:\n/start - Get started\n/help - Show this help",
         ]);
     }
 }
@@ -37,6 +39,7 @@ class HelpCommand extends Command
 class EchoCommand extends Command
 {
     protected string $name = 'echo';
+
     protected string $description = 'Echo back user input';
 
     public function handle($inputText = '{.+$}'): void
@@ -45,7 +48,7 @@ class EchoCommand extends Command
 
         $this->getBot()->sendMessage([
             'chat_id' => $message->chat->id,
-            'text'    => "You said: {$inputText}",
+            'text' => "You said: {$inputText}",
         ]);
     }
 }
@@ -53,13 +56,14 @@ class EchoCommand extends Command
 class PhotoCommand extends Command
 {
     protected string $name = 'photo';
+
     protected string $description = 'Send a photo';
 
     public function handle(): void
     {
         $this->getBot()->sendPhoto([
             'chat_id' => $this->getUpdate()->message->chat->id,
-            'photo'   => 'https://example.com/photo.jpg',
+            'photo' => 'https://example.com/photo.jpg',
             'caption' => 'Here is your requested photo!',
         ]);
     }
@@ -67,7 +71,7 @@ class PhotoCommand extends Command
 
 describe('BotFake Basic Functionality', function () {
     it('can be instantiated with no responses', function () {
-        $bot = new BotFake();
+        $bot = new BotFake;
 
         expect($bot)->toBeInstanceOf(BotFake::class);
         expect($bot->getName())->toBe('fake');
@@ -84,7 +88,7 @@ describe('BotFake Basic Functionality', function () {
     });
 
     it('can register commands fluently', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->registerCommand('help', HelpCommand::class);
 
@@ -98,7 +102,7 @@ describe('BotFake Basic Functionality', function () {
 
 describe('BotFake Command Processing', function () {
     it('processes a simple start command', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->processUpdate(
                 TelegramUpdate::create()->commandMessage('start')->get()
@@ -109,7 +113,7 @@ describe('BotFake Command Processing', function () {
     });
 
     it('processes commands with arguments', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('echo', EchoCommand::class)
             ->processUpdate(
                 TelegramUpdate::create()->commandMessage('echo', 'hello world')->get()
@@ -119,7 +123,7 @@ describe('BotFake Command Processing', function () {
     });
 
     it('processes multiple commands in sequence', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->registerCommand('help', HelpCommand::class);
 
@@ -135,7 +139,7 @@ describe('BotFake Command Processing', function () {
         $chatId = '123456789';
         $userId = '987654321';
 
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->processUpdate(
                 TelegramUpdate::create()->commandMessage('start')
@@ -150,14 +154,14 @@ describe('BotFake Command Processing', function () {
 
 describe('BotFake Error Handling', function () {
     it('handles unknown commands gracefully', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->processUpdate(TelegramUpdate::create()->commandMessage('unknown')->get());
 
         $bot->assertNothingSent();
     });
 
     it('can process non-command messages', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->processUpdate(TelegramUpdate::create()->textMessage('Just a regular message')->get());
 
         $bot->assertNothingSent();
@@ -166,7 +170,7 @@ describe('BotFake Error Handling', function () {
 
 describe('BotFake API Assertions', function () {
     it('can assert different types of API calls', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('photo', PhotoCommand::class)
             ->processUpdate(TelegramUpdate::create()->commandMessage('photo')->get());
 
@@ -178,7 +182,7 @@ describe('BotFake API Assertions', function () {
     });
 
     it('can assert with array constraints', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->processUpdate(
                 TelegramUpdate::create()->commandMessage('start')
@@ -188,12 +192,12 @@ describe('BotFake API Assertions', function () {
 
         $bot->assertSent('sendMessage', [
             'chat_id' => '987654321',
-            'text'    => 'Welcome! Use /help to see available commands.',
+            'text' => 'Welcome! Use /help to see available commands.',
         ]);
     });
 
     it('can assert methods were not sent', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->processUpdate(TelegramUpdate::create()->commandMessage('start')->get());
 
@@ -203,13 +207,13 @@ describe('BotFake API Assertions', function () {
     });
 
     it('can assert nothing was sent', function () {
-        $bot = new BotFake();
+        $bot = new BotFake;
 
         $bot->assertNothingSent();
     });
 
     it('can assert message count', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->registerCommand('help', HelpCommand::class);
 
@@ -232,7 +236,7 @@ describe('BotFake API Assertions', function () {
     });
 
     it('records multiple API calls in order', function () {
-        $bot = new BotFake();
+        $bot = new BotFake;
 
         $bot->sendMessage(['text' => 'msg1']);
         $bot->sendPhoto(['photo' => 'url1']);
@@ -246,12 +250,12 @@ describe('BotFake API Assertions', function () {
     });
 
     it('assertNothingSent passes when no API calls made', function () {
-        $bot = new BotFake();
+        $bot = new BotFake;
         $bot->assertNothingSent();
     });
 
     it('assertSent fails gracefully on wrong constraints', function () {
-        $bot = new BotFake();
+        $bot = new BotFake;
         $bot->sendMessage(['text' => 'hello']);
 
         $this->expectException(AssertionFailedError::class);
@@ -262,11 +266,11 @@ describe('BotFake API Assertions', function () {
 
 describe('BotFake Complex Scenarios', function () {
     it('records answerCallbackQuery call correctly', function () {
-        $bot = new BotFake();
+        $bot = new BotFake;
 
         $bot->answerCallbackQuery([
             'callback_query_id' => 'fake_callback_id',
-            'text'              => 'Button clicked!',
+            'text' => 'Button clicked!',
         ]);
 
         $bot->assertSent('answerCallbackQuery');
@@ -274,7 +278,7 @@ describe('BotFake Complex Scenarios', function () {
     });
 
     it('can chain multiple operations fluently', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->registerCommand('help', HelpCommand::class)
             ->registerCommand('echo', EchoCommand::class)
@@ -292,7 +296,7 @@ describe('BotFake Complex Scenarios', function () {
         $customUserId = '999888777';
         $customChatId = '111222333';
 
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->processUpdate(
                 TelegramUpdate::create()->commandMessage('start')
@@ -307,7 +311,7 @@ describe('BotFake Complex Scenarios', function () {
     });
 
     it('demonstrates the improved fluent API', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('echo', EchoCommand::class);
 
         $bot->processUpdate(TelegramUpdate::create()->commandMessage('echo', 'new way')->get());
@@ -316,7 +320,7 @@ describe('BotFake Complex Scenarios', function () {
     });
 
     it('works with invokable syntax in real scenarios', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class);
 
         $updateFactory = TelegramUpdate::create()->commandMessage('start');
@@ -328,7 +332,7 @@ describe('BotFake Complex Scenarios', function () {
 
 describe('BotFake Command Recording', function () {
     it('records processed commands in processedCommands array', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->registerCommand('echo', EchoCommand::class);
 
@@ -343,7 +347,7 @@ describe('BotFake Command Recording', function () {
     });
 
     it('fails assertCommandHandled assertion when command was not processed', function () {
-        $bot = new BotFake();
+        $bot = new BotFake;
 
         $bot->registerCommand('start', StartCommand::class);
         $bot->processUpdate(TelegramUpdate::create()->commandMessage('start')->get());
@@ -355,7 +359,7 @@ describe('BotFake Command Recording', function () {
     });
 
     it('records multiple processed commands and allows count assertions', function () {
-        $bot = (new BotFake())
+        $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->registerCommand('help', HelpCommand::class);
 
