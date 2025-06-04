@@ -1,13 +1,13 @@
 <?php
 
-namespace Telegram\Bot\Testing\Responses;
+namespace Telegram\Bot\Testing\Payloads;
 
 /**
  * Response Objects Payload Definitions for Tests Data.
  * These define the *structure* of the Telegram API objects,
  * using string placeholders that TelegramUpdate will populate with Faker data.
  */
-final class Payload
+final class PayloadDefinitions
 {
     public static function create(): self
     {

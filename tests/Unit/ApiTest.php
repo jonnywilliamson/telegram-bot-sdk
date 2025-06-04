@@ -2,7 +2,7 @@
 
 use Telegram\Bot\FileUpload\InputFile;
 use Telegram\Bot\Objects\ResponseObject;
-use Telegram\Bot\Testing\Responses\TelegramUpdate;
+use Telegram\Bot\Testing\Payloads\TelegramPayload;
 
 it('can perform getMe and sendMessage with mocked HTTP responses', function () {
     // Manually prepare responses
@@ -48,8 +48,8 @@ it('can perform getMe and sendMessage with mocked HTTP responses', function () {
 });
 
 it('can call getMe and receive a valid user object', function () {
-    // Use factory to create response
-    $fakeResponse = TelegramUpdate::create()
+    // Use factory to create a response
+    $fakeResponse = TelegramPayload::create()
         ->user()
         ->withId(123456789)
         ->withFirstName('TestBot')
@@ -70,7 +70,7 @@ it('can call getMe and receive a valid user object', function () {
 
 // --- Test sendMessage method ---
 it('can send a message using sendMessage method', function () {
-    $fakeResponse = TelegramUpdate::create()
+    $fakeResponse = TelegramPayload::create()
         ->message()
         ->withText('Hello, world')
         ->withMessageId(1)
@@ -109,7 +109,7 @@ it('can edit message text with editMessageText', function () {
 
 // --- Test answerCallbackQuery ---
 it('can answer callback query', function () {
-    // If telegram method returns a bool, we can also just use a bool for the response. This will be converted to
+    // If the telegram method returns a bool, we can also just use a bool for the response. This will be converted to
     // {"ok":true,"result":true}
     $responseData = true;
     $bot = mockBotManagerWithResponses($responseData);

@@ -1,6 +1,6 @@
 <?php
 
-namespace Telegram\Bot\Testing\Responses;
+namespace Telegram\Bot\Testing\Payloads\Provider;
 
 use Exception;
 use Faker\Provider\Base;

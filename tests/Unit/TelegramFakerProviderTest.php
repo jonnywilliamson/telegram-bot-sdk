@@ -4,7 +4,7 @@ namespace Tests\Unit;
 
 use Faker\Factory as Faker;
 use Faker\Generator;
-use Telegram\Bot\Testing\Responses\TelegramFakerProvider;
+use Telegram\Bot\Testing\Payloads\Provider\TelegramFakerProvider;
 
 /** @return Generator&TelegramFakerProvider */
 function getFakerGenerator(?int $seed = null): Generator

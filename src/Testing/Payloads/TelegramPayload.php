@@ -1,6 +1,6 @@
 <?php
 
-namespace Telegram\Bot\Testing\Responses;
+namespace Telegram\Bot\Testing\Payloads;
 
 use Faker\Factory as Faker;
 use Faker\Generator;
@@ -9,11 +9,12 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
 use Telegram\Bot\Objects\ResponseObject;
+use Telegram\Bot\Testing\Payloads\Provider\TelegramFakerProvider;
 
 /**
- * @mixin Payload
+ * @mixin PayloadDefinitions
  */
-final class TelegramUpdate
+final class TelegramPayload
 {
     private int $count = 1;
 
@@ -83,9 +84,9 @@ final class TelegramUpdate
     public function commandMessage(string $commandName, ?string $args = null, array $mergePayload = []): self
     {
         $fullCommand = '/'.$commandName.($args ? ' '.$args : '');
-        $template = Payload::create()->update();
+        $template = PayloadDefinitions::create()->update();
         $template['message'] = $this->mergePayloads(
-            Payload::create()->message(),
+            PayloadDefinitions::create()->message(),
             [
                 'text' => $fullCommand,
                 'entities' => $this->faker()->commandEntities($fullCommand),
@@ -99,9 +100,9 @@ final class TelegramUpdate
 
     public function textMessage(string $text, array $mergePayload = []): self
     {
-        $template = Payload::create()->update();
+        $template = PayloadDefinitions::create()->update();
         $template['message'] = $this->mergePayloads(
-            Payload::create()->message(),
+            PayloadDefinitions::create()->message(),
             [
                 'text' => $text,
                 'entities' => [],
@@ -115,9 +116,9 @@ final class TelegramUpdate
 
     public function callbackQuery(string $data, array $mergePayload = []): self
     {
-        $template = Payload::create()->update();
+        $template = PayloadDefinitions::create()->update();
         $template['callback_query'] = $this->mergePayloads(
-            Payload::create()->callbackQuery(),
+            PayloadDefinitions::create()->callbackQuery(),
             ['data' => $data],
         );
 
@@ -128,11 +129,11 @@ final class TelegramUpdate
 
     public function photoMessage(array $mergePayload = []): self
     {
-        $template = Payload::create()->update();
+        $template = PayloadDefinitions::create()->update();
         $template['message'] = $this->mergePayloads(
-            Payload::create()->message(),
+            PayloadDefinitions::create()->message(),
             [
-                'photo' => [Payload::create()->photo()],
+                'photo' => [PayloadDefinitions::create()->photo()],
             ],
         );
 
@@ -143,11 +144,11 @@ final class TelegramUpdate
 
     public function documentMessage(array $mergePayload = []): self
     {
-        $template = Payload::create()->update();
+        $template = PayloadDefinitions::create()->update();
         $template['message'] = $this->mergePayloads(
-            Payload::create()->message(),
+            PayloadDefinitions::create()->message(),
             [
-                'document' => Payload::create()->document(),
+                'document' => PayloadDefinitions::create()->document(),
             ],
         );
 
@@ -196,8 +197,8 @@ final class TelegramUpdate
             return $this;
         }
 
-        if (method_exists(Payload::class, $name)) {
-            $this->basePayloadTemplate = Payload::create()->{$name}(...$arguments);
+        if (method_exists(PayloadDefinitions::class, $name)) {
+            $this->basePayloadTemplate = PayloadDefinitions::create()->{$name}(...$arguments);
 
             return $this;
         }
@@ -244,8 +245,8 @@ final class TelegramUpdate
                 try {
                     return $this->faker()->$method(...$args);
                 } catch (InvalidArgumentException) {
-                    if (method_exists(Payload::class, $method) && empty($args)) {
-                        return $this->makeWithFaker(Payload::create()->{$method}());
+                    if (method_exists(PayloadDefinitions::class, $method) && empty($args)) {
+                        return $this->makeWithFaker(PayloadDefinitions::create()->{$method}());
                     }
 
                     return $value;

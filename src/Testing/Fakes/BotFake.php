@@ -1,6 +1,6 @@
 <?php
 
-namespace Telegram\Bot\Testing;
+namespace Telegram\Bot\Testing\Fakes;
 
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
@@ -8,7 +8,6 @@ use Illuminate\Support\Str;
 use PHPUnit\Framework\Assert as PHPUnit;
 use Telegram\Bot\Api;
 use Telegram\Bot\Bot;
-use Telegram\Bot\Commands\CommandHandler;
 use Telegram\Bot\Commands\Contracts\CallableContract;
 use Telegram\Bot\Commands\Contracts\CommandContract;
 use Telegram\Bot\Http\GuzzleHttpClient;
@@ -171,7 +170,27 @@ class BotFake extends Bot
         );
     }
 
-    public function assertCommandHandled(string $commandName, ?callable $callback = null): void
+    public function assertCommandProcessed(string $commandName, ?callable $callback = null): void
+    {
+        $this->assertCommandHandledCondition(
+            $commandName,
+            $callback,
+            true,
+            "The expected [{$commandName}] command was not handled."
+        );
+    }
+
+    public function assertCommandNotProcessed(string $commandName, ?callable $callback = null): void
+    {
+        $this->assertCommandHandledCondition(
+            $commandName,
+            $callback,
+            false,
+            "The unexpected [{$commandName}] command was handled."
+        );
+    }
+
+    protected function assertCommandHandledCondition(string $commandName, ?callable $callback, bool $shouldBeHandled, string $failMessage): void
     {
         $matchingCommands = array_filter($this->processedCommands,
             function ($commandRecord) use ($commandName, $callback) {
@@ -182,14 +201,24 @@ class BotFake extends Bot
                     return true;
                 }
 
-                // Pass the arguments that the command received to the callback
                 return $callback($commandRecord['arguments']);
             });
 
-        PHPUnit::assertNotSame(
-            [],
-            $matchingCommands,
-            "The expected [{$commandName}] command was not handled."
+        if ($shouldBeHandled) {
+            PHPUnit::assertNotSame([], $matchingCommands, $failMessage);
+        } else {
+            PHPUnit::assertSame([], $matchingCommands, $failMessage);
+        }
+    }
+
+    public function assertNoCommandsProcessed(): void
+    {
+        $count = count($this->processedCommands);
+
+        PHPUnit::assertSame(
+            0,
+            $count,
+            "Expected no commands to be handled, but {$count} command(s) were processed."
         );
     }
 

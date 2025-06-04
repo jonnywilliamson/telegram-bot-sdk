@@ -1,6 +1,6 @@
 <?php
 
-namespace Telegram\Bot\Testing;
+namespace Telegram\Bot\Testing\Fakes;
 
 use Exception;
 use Telegram\Bot\Api;

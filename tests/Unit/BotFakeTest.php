@@ -3,9 +3,9 @@
 use PHPUnit\Framework\AssertionFailedError;
 use Telegram\Bot\Commands\Command;
 use Telegram\Bot\Objects\ResponseObject;
-use Telegram\Bot\Testing\ApiFake;
-use Telegram\Bot\Testing\BotFake;
-use Telegram\Bot\Testing\Responses\TelegramUpdate;
+use Telegram\Bot\Testing\Fakes\ApiFake;
+use Telegram\Bot\Testing\Fakes\BotFake;
+use Telegram\Bot\Testing\Payloads\TelegramPayload;
 
 class StartCommand extends Command
 {
@@ -74,8 +74,8 @@ describe('BotFake Basic Functionality', function () {
     it('can be instantiated with no responses', function () {
         $bot = new BotFake;
 
-        expect($bot)->toBeInstanceOf(BotFake::class);
-        expect($bot->getName())->toBe('fake');
+        expect($bot)->toBeInstanceOf(BotFake::class)
+            ->and($bot->getName())->toBe('fake');
     });
 
     it('can be instantiated with responses', function () {
@@ -85,7 +85,8 @@ describe('BotFake Basic Functionality', function () {
 
         $bot = new BotFake($responses);
 
-        expect($bot)->toBeInstanceOf(BotFake::class);
+        expect($bot)->toBeInstanceOf(BotFake::class)
+            ->and($bot->getName())->toBe('fake');
     });
 
     it('can register commands fluently', function () {
@@ -96,8 +97,9 @@ describe('BotFake Basic Functionality', function () {
         expect($bot)->toBeInstanceOf(BotFake::class);
 
         $commands = $bot->getCommandHandler()->getCommands();
-        expect($commands)->toHaveKey('start');
-        expect($commands)->toHaveKey('help');
+        expect($commands)->toHaveKey('start')
+            ->and($commands)->toHaveKey('help')
+            ->and($commands)->toHaveCount(2);
     });
 });
 
@@ -106,21 +108,24 @@ describe('BotFake Command Processing', function () {
         $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->processUpdate(
-                TelegramUpdate::create()->commandMessage('start')->get()
+                TelegramPayload::create()->commandMessage('start')->get()
             );
 
         $bot->assertMessageSent('Welcome! Use /help to see available commands.');
         $bot->assertSentTimes('sendMessage', 1);
+        $bot->assertCommandProcessed('start');
     });
 
     it('processes commands with arguments', function () {
         $bot = (new BotFake)
             ->registerCommand('echo', EchoCommand::class)
             ->processUpdate(
-                TelegramUpdate::create()->commandMessage('echo', 'hello world')->get()
+                TelegramPayload::create()->commandMessage('echo', 'hello world')->get()
             );
 
         $bot->assertMessageContains('You said: hello world');
+        $bot->assertSentTimes('sendMessage', 1);
+        $bot->assertCommandProcessed('echo');
     });
 
     it('processes multiple commands in sequence', function () {
@@ -128,20 +133,20 @@ describe('BotFake Command Processing', function () {
             ->registerCommand('start', StartCommand::class)
             ->registerCommand('help', HelpCommand::class);
 
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('start')->get());
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('help')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('start')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('help')->get());
 
         $bot->assertMessageSent('Welcome! Use /help to see available commands.');
         $bot->assertMessageContains('Available commands:');
         $bot->assertSentTimes('sendMessage', 2);
     });
 
-    it('handles commands with magic withXYZ methods', function () {
+    it('handles commands with payloads modified by magic withXYZ methods', function () {
         $chatId = '123456789';
         $userId = '987654321';
 
         /** @var ResponseObject $update */
-        $update = TelegramUpdate::create()->commandMessage('start')
+        $update = TelegramPayload::create()->commandMessage('start')
             ->withMessage(['chat' => ['id' => $chatId]])
             ->withMessage(['from' => ['id' => $userId]])
             ->get();
@@ -160,16 +165,18 @@ describe('BotFake Command Processing', function () {
 describe('BotFake Error Handling', function () {
     it('handles unknown commands gracefully', function () {
         $bot = (new BotFake)
-            ->processUpdate(TelegramUpdate::create()->commandMessage('unknown')->get());
+            ->processUpdate(TelegramPayload::create()->commandMessage('unknown')->get());
 
         $bot->assertNothingSent();
+        $bot->assertCommandNotProcessed('unknown');
     });
 
     it('can process non-command messages', function () {
         $bot = (new BotFake)
-            ->processUpdate(TelegramUpdate::create()->textMessage('Just a regular message')->get());
+            ->processUpdate(TelegramPayload::create()->textMessage('Just a regular message')->get());
 
         $bot->assertNothingSent();
+        $bot->assertNoCommandsProcessed();
     });
 });
 
@@ -177,7 +184,7 @@ describe('BotFake API Assertions', function () {
     it('can assert different types of API calls', function () {
         $bot = (new BotFake)
             ->registerCommand('photo', PhotoCommand::class)
-            ->processUpdate(TelegramUpdate::create()->commandMessage('photo')->get());
+            ->processUpdate(TelegramPayload::create()->commandMessage('photo')->get());
 
         $bot->assertSent('sendPhoto');
         $bot->assertSent('sendPhoto', function (array $params) {
@@ -186,11 +193,11 @@ describe('BotFake API Assertions', function () {
         });
     });
 
-    it('can assert with array constraints', function () {
+    it('can assert using simple array constraints', function () {
         $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->processUpdate(
-                TelegramUpdate::create()->commandMessage('start')
+                TelegramPayload::create()->commandMessage('start')
                     ->withMessage(['chat' => ['id' => '987654321']])
                     ->get()
             );
@@ -204,7 +211,7 @@ describe('BotFake API Assertions', function () {
     it('can assert methods were not sent', function () {
         $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
-            ->processUpdate(TelegramUpdate::create()->commandMessage('start')->get());
+            ->processUpdate(TelegramPayload::create()->commandMessage('start')->get());
 
         $bot->assertSent('sendMessage');
         $bot->assertNotSent('sendPhoto');
@@ -222,9 +229,9 @@ describe('BotFake API Assertions', function () {
             ->registerCommand('start', StartCommand::class)
             ->registerCommand('help', HelpCommand::class);
 
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('start')->get());
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('help')->get());
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('start')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('start')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('help')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('start')->get());
 
         $bot->assertMessageSentCount(3);
         $bot->assertSentTimes('sendMessage', 3);
@@ -234,11 +241,9 @@ describe('BotFake API Assertions', function () {
         $apiFake = new ApiFake([]);
         $apiFake->failWhenEmpty();
 
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('No fake responses left');
-
         $apiFake->fakeCall('sendMessage', []);
-    });
+    })
+        ->throws(Exception::class, 'No fake responses left');
 
     it('records multiple API calls in order', function () {
         $bot = new BotFake;
@@ -252,11 +257,6 @@ describe('BotFake API Assertions', function () {
         $this->assertEquals('sendMessage', $requests[0]->method());
         $this->assertEquals('sendPhoto', $requests[1]->method());
         $this->assertEquals('answerCallbackQuery', $requests[2]->method());
-    });
-
-    it('assertNothingSent passes when no API calls made', function () {
-        $bot = new BotFake;
-        $bot->assertNothingSent();
     });
 
     it('assertSent fails gracefully on wrong constraints', function () {
@@ -278,7 +278,6 @@ describe('BotFake Complex Scenarios', function () {
             'text' => 'Button clicked!',
         ]);
 
-        $bot->assertSent('answerCallbackQuery');
         $bot->assertSent('answerCallbackQuery', ['text' => 'Button clicked!']);
     });
 
@@ -287,9 +286,9 @@ describe('BotFake Complex Scenarios', function () {
             ->registerCommand('start', StartCommand::class)
             ->registerCommand('help', HelpCommand::class)
             ->registerCommand('echo', EchoCommand::class)
-            ->processUpdate(TelegramUpdate::create()->commandMessage('start')->get())
-            ->processUpdate(TelegramUpdate::create()->commandMessage('help')->get())
-            ->processUpdate(TelegramUpdate::create()->commandMessage('echo', 'test')->get());
+            ->processUpdate(TelegramPayload::create()->commandMessage('start')->get())
+            ->processUpdate(TelegramPayload::create()->commandMessage('help')->get())
+            ->processUpdate(TelegramPayload::create()->commandMessage('echo', 'test')->get());
 
         $bot->assertSentTimes('sendMessage', 3);
         $bot->assertMessageContains('Welcome!');
@@ -304,7 +303,7 @@ describe('BotFake Complex Scenarios', function () {
         $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class)
             ->processUpdate(
-                TelegramUpdate::create()->commandMessage('start')
+                TelegramPayload::create()->commandMessage('start')
                     ->withMessage([
                         'from' => ['id' => $customUserId, 'first_name' => 'TestUser'],
                         'chat' => ['id' => $customChatId, 'type' => 'private'],
@@ -319,7 +318,7 @@ describe('BotFake Complex Scenarios', function () {
         $bot = (new BotFake)
             ->registerCommand('echo', EchoCommand::class);
 
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('echo', 'new way')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('echo', 'new way')->get());
 
         $bot->assertMessageContains('You said: new way');
     });
@@ -328,7 +327,7 @@ describe('BotFake Complex Scenarios', function () {
         $bot = (new BotFake)
             ->registerCommand('start', StartCommand::class);
 
-        $updateFactory = TelegramUpdate::create()->commandMessage('start');
+        $updateFactory = TelegramPayload::create()->commandMessage('start'); // Note no terminal method at end.
         $bot->processUpdate($updateFactory());
 
         $bot->assertMessageSent('Welcome! Use /help to see available commands.');
@@ -341,26 +340,27 @@ describe('BotFake Command Recording', function () {
             ->registerCommand('start', StartCommand::class)
             ->registerCommand('echo', EchoCommand::class);
 
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('start')->get());
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('echo', 'hello world')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('start')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('echo', 'hello world')->get());
 
         // Assert commands are recorded as handled internally
-        $bot->assertCommandHandled('start');
-        $bot->assertCommandHandled('echo', function ($args) {
+        $bot->assertCommandProcessed('start');
+        $bot->assertCommandProcessed('echo', function ($args) {
             return isset($args['inputText']) && str_contains($args['inputText'], 'hello world');
         });
     });
 
-    it('fails assertCommandHandled assertion when command was not processed', function () {
+    it('fails assertCommandProcessed assertion when command was not processed', function () {
         $bot = new BotFake;
 
         $bot->registerCommand('start', StartCommand::class);
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('start')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('start')->get());
 
         $this->expectException(AssertionFailedError::class);
 
         // 'echo' command never processed, should fail
-        $bot->assertCommandHandled('echo');
+        $bot->assertCommandProcessed('echo');
+        $bot->assertNoCommandsProcessed();
     });
 
     it('records multiple processed commands and allows count assertions', function () {
@@ -368,14 +368,14 @@ describe('BotFake Command Recording', function () {
             ->registerCommand('start', StartCommand::class)
             ->registerCommand('help', HelpCommand::class);
 
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('start')->get());
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('help')->get());
-        $bot->processUpdate(TelegramUpdate::create()->commandMessage('start')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('start')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('help')->get());
+        $bot->processUpdate(TelegramPayload::create()->commandMessage('start')->get());
 
-        $bot->assertCommandHandled('start');
-        $bot->assertCommandHandled('help');
+        $bot->assertCommandProcessed('start');
+        $bot->assertCommandProcessed('help');
 
-        // Check that start command was handled at least twice
+        // Check that start command was handled twice
         $startCommands = $bot->getProcessedCommands('start');
         $this->assertCount(2, $startCommands);
     });
