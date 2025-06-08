@@ -103,13 +103,13 @@ class BotFake extends Bot
     {
         $allRequests = $this->getApi()->getRequests();
         $requestsForMethod = $this->sentByMethod($method);
-        $sendMethods = array_unique(array_map(fn($r) => $r->method(), $allRequests));
+        $sendMethods = array_unique(array_map(fn ($r) => $r->method(), $allRequests));
 
         // Primary check: Was the method called AT ALL?
         if (empty($requestsForMethod)) {
-            $message = "The expected [" . $method . "] request was not sent.";
-            if (!empty($sendMethods)) {
-                $message .= "\nMethods sent instead: " . implode(', ', $sendMethods);
+            $message = 'The expected ['.$method.'] request was not sent.';
+            if (! empty($sendMethods)) {
+                $message .= "\nMethods sent instead: ".implode(', ', $sendMethods);
             }
             PHPUnit::fail($message);
         }
@@ -122,8 +122,8 @@ class BotFake extends Bot
                 $expectedConstraint = is_array($constraint) ? json_encode($constraint, JSON_PRETTY_PRINT) : 'A custom callable constraint.';
 
                 $message = sprintf(
-                    "The [%s] request was sent, but no calls matched the provided constraint." .
-                    "\n\nRequests received for '%s':\n%s" .
+                    'The [%s] request was sent, but no calls matched the provided constraint.'.
+                    "\n\nRequests received for '%s':\n%s".
                     "\n\nExpected constraint:\n%s",
                     $method,
                     $method,
@@ -141,8 +141,9 @@ class BotFake extends Bot
         foreach ($requests as $index => $request) {
             $params = $request->parameters();
             $paramsStr = json_encode($params, JSON_PRETTY_PRINT);
-            $lines[] = "--- Request ".($index+1)." ---\n{$paramsStr}";
+            $lines[] = '--- Request '.($index + 1)." ---\n{$paramsStr}";
         }
+
         return implode("\n", $lines);
     }
 
@@ -150,14 +151,14 @@ class BotFake extends Bot
     {
         $matching = $this->sent($method, $constraint);
 
-        if (!empty($matching)) {
+        if (! empty($matching)) {
             $message = "The unexpected [{$method}] request was sent.";
 
             if ($constraint) {
-                $message .= "\n\nMatching requests for '{$method}':\n" . $this->formatRequestsForMessage($matching);
+                $message .= "\n\nMatching requests for '{$method}':\n".$this->formatRequestsForMessage($matching);
             } else {
                 // No constraint: show all calls for this method
-                $message .= "\n\nRequests sent for '{$method}':\n" . $this->formatRequestsForMessage($matching);
+                $message .= "\n\nRequests sent for '{$method}':\n".$this->formatRequestsForMessage($matching);
             }
 
             PHPUnit::fail($message);
@@ -174,17 +175,17 @@ class BotFake extends Bot
     {
         $count = count($this->sentByMethod($method));
         $allRequests = $this->getApi()->getRequests();
-        $sendMethods = array_unique(array_map(fn($r) => $r->method(), $allRequests));
+        $sendMethods = array_unique(array_map(fn ($r) => $r->method(), $allRequests));
 
         $message = sprintf(
-            "The expected [%s] method was sent %d times instead of %d times.",
+            'The expected [%s] method was sent %d times instead of %d times.',
             $method,
             $count,
             $times,
         );
 
-        if ($count !== $times && !empty($sendMethods)) {
-            $message .= "\nMethods sent instead: " . implode(', ', $sendMethods);
+        if ($count !== $times && ! empty($sendMethods)) {
+            $message .= "\nMethods sent instead: ".implode(', ', $sendMethods);
         }
 
         PHPUnit::assertSame($times, $count, $message);
@@ -194,8 +195,8 @@ class BotFake extends Bot
     {
         $allRequests = $this->getApi()->getRequests();
 
-        if (!empty($allRequests)) {
-            $methodNames = array_unique(array_map(fn($r) => $r->method(), $allRequests));
+        if (! empty($allRequests)) {
+            $methodNames = array_unique(array_map(fn ($r) => $r->method(), $allRequests));
             $methodsList = implode(', ', $methodNames);
 
             $message = "Expected no requests to be sent, but the following were sent:\n";
