@@ -99,21 +99,73 @@ class BotFake extends Bot
     }
 
     // Assertions Begin Here
-
     public function assertSent(string $method, array|callable|null $constraint = null): void
     {
-        PHPUnit::assertNotSame(
-            $this->sent($method, $constraint), // Pass the constraint directly
-            [],
-            "The expected [{$method}] request was not sent."
-        );
+        $allRequests = $this->getApi()->getRequests();
+        $requestsForMethod = $this->sentByMethod($method);
+        $sendMethods = array_unique(array_map(fn($r) => $r->method(), $allRequests));
+
+        // Primary check: Was the method called AT ALL?
+        if (empty($requestsForMethod)) {
+            $message = "The expected [" . $method . "] request was not sent.";
+            if (!empty($sendMethods)) {
+                $message .= "\nMethods sent instead: " . implode(', ', $sendMethods);
+            }
+            PHPUnit::fail($message);
+        }
+
+        // If a constraint is provided, now filter by it.
+        if ($constraint !== null) {
+            $matchingRequests = $this->sent($method, $constraint);
+
+            if (empty($matchingRequests)) {
+                $expectedConstraint = is_array($constraint) ? json_encode($constraint, JSON_PRETTY_PRINT) : 'A custom callable constraint.';
+
+                $message = sprintf(
+                    "The [%s] request was sent, but no calls matched the provided constraint." .
+                    "\n\nRequests received for '%s':\n%s" .
+                    "\n\nExpected constraint:\n%s",
+                    $method,
+                    $method,
+                    $this->formatRequestsForMessage($requestsForMethod),
+                    $expectedConstraint
+                );
+                PHPUnit::fail($message);
+            }
+        }
+    }
+
+    private function formatRequestsForMessage(array $requests): string
+    {
+        $lines = [];
+        foreach ($requests as $index => $request) {
+            $params = $request->parameters();
+            $paramsStr = json_encode($params, JSON_PRETTY_PRINT);
+            $lines[] = "--- Request ".($index+1)." ---\n{$paramsStr}";
+        }
+        return implode("\n", $lines);
     }
 
     public function assertNotSent(string $method, array|callable|null $constraint = null): void
     {
+        $matching = $this->sent($method, $constraint);
+
+        if (!empty($matching)) {
+            $message = "The unexpected [{$method}] request was sent.";
+
+            if ($constraint) {
+                $message .= "\n\nMatching requests for '{$method}':\n" . $this->formatRequestsForMessage($matching);
+            } else {
+                // No constraint: show all calls for this method
+                $message .= "\n\nRequests sent for '{$method}':\n" . $this->formatRequestsForMessage($matching);
+            }
+
+            PHPUnit::fail($message);
+        }
+
         PHPUnit::assertCount(
             0,
-            $this->sent($method, $constraint),
+            $matching,
             "The unexpected [{$method}] request was sent."
         );
     }
@@ -121,22 +173,39 @@ class BotFake extends Bot
     public function assertSentTimes(string $method, int $times = 1): void
     {
         $count = count($this->sentByMethod($method));
+        $allRequests = $this->getApi()->getRequests();
+        $sendMethods = array_unique(array_map(fn($r) => $r->method(), $allRequests));
 
-        PHPUnit::assertSame(
-            $times,
+        $message = sprintf(
+            "The expected [%s] method was sent %d times instead of %d times.",
+            $method,
             $count,
-            "The expected [{$method}] method was sent {$count} times instead of {$times} times."
+            $times,
         );
+
+        if ($count !== $times && !empty($sendMethods)) {
+            $message .= "\nMethods sent instead: " . implode(', ', $sendMethods);
+        }
+
+        PHPUnit::assertSame($times, $count, $message);
     }
 
     public function assertNothingSent(): void
     {
-        $methodNames = implode(
-            separator: ', ',
-            array: array_map(fn (TestRequest $request): string => $request->method(), $this->getApi()->getRequests())
-        );
+        $allRequests = $this->getApi()->getRequests();
 
-        PHPUnit::assertEmpty($this->getApi()->getRequests(), 'The following requests were sent unexpectedly: '.$methodNames);
+        if (!empty($allRequests)) {
+            $methodNames = array_unique(array_map(fn($r) => $r->method(), $allRequests));
+            $methodsList = implode(', ', $methodNames);
+
+            $message = "Expected no requests to be sent, but the following were sent:\n";
+            $message .= "Methods sent: {$methodsList}\n\n";
+            $message .= $this->formatRequestsForMessage($allRequests);
+
+            PHPUnit::fail($message);
+        }
+
+        PHPUnit::assertEmpty($allRequests, 'Expected no requests to be sent, but some were.');
     }
 
     public function assertMessageSent(string $text, ?string $chatId = null): void
